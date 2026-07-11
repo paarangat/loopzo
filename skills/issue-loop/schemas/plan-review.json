@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["findings"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "blocking", "summary", "proposed_change", "scope_claim"],
+        "properties": {
+          "id": { "type": "string", "description": "F1, F2, ..." },
+          "type": { "type": "string", "enum": ["bug", "gap", "inconsistency", "improvement"] },
+          "blocking": { "type": "boolean" },
+          "summary": { "type": "string" },
+          "proposed_change": { "type": "string" },
+          "scope_claim": { "type": "string", "enum": ["in", "out-but-material", "out"] }
+        }
+      }
+    }
+  }
+}

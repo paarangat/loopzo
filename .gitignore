@@ -1,0 +1,5 @@
+.claude-runs/
+.context/
+.DS_Store
+._*
+.AppleDouble

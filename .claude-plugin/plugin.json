@@ -1,0 +1,22 @@
+{
+  "name": "loopzo",
+  "version": "0.1.0",
+  "description": "A bounded, multi-model issue-to-PR loop for any GitHub repository.",
+  "author": {
+    "name": "Paarangat",
+    "url": "https://github.com/paarangat"
+  },
+  "homepage": "https://github.com/paarangat/loopzo",
+  "repository": "https://github.com/paarangat/loopzo",
+  "license": "MIT",
+  "keywords": [
+    "issue",
+    "loop",
+    "codex",
+    "claude",
+    "orchestration",
+    "pipeline",
+    "github",
+    "pr"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["files_changed", "deviations", "tests_run", "status"],
+  "properties": {
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "deviations": {
+      "type": "array",
+      "description": "ANY change not literally in the final plan. Empty array means the diff matches the plan exactly.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["what", "why", "plan_step"],
+        "properties": {
+          "what": { "type": "string" },
+          "why": { "type": "string" },
+          "plan_step": { "type": "string", "description": "Nearest plan step, or 'none'" }
+        }
+      }
+    },
+    "tests_run": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["complete", "partial", "blocked"] }
+  }
+}

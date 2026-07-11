@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rulings"],
+  "properties": {
+    "rulings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding_id", "ruling", "criterion", "reason"],
+        "properties": {
+          "finding_id": { "type": "string" },
+          "ruling": { "type": "string", "enum": ["accept", "reject", "comment-only"] },
+          "criterion": { "type": "string", "description": "Acceptance criterion number this traces to, or 'none'" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

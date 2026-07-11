@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["issue_solved", "evidence", "untraceable_hunks", "undeclared_deviations", "operator_impact_ok", "verdict", "fix_list"],
+  "properties": {
+    "issue_solved": { "type": "string", "enum": ["yes", "no", "partial"] },
+    "evidence": { "type": "string", "description": "file:line evidence per acceptance criterion" },
+    "untraceable_hunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "hunk", "why"],
+        "properties": {
+          "file": { "type": "string" },
+          "hunk": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "undeclared_deviations": { "type": "array", "items": { "type": "string" } },
+    "operator_impact_ok": { "type": "boolean" },
+    "verdict": { "type": "string", "enum": ["pass", "fix", "escalate"] },
+    "fix_list": { "type": "array", "items": { "type": "string" } }
+  }
+}

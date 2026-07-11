@@ -1,0 +1,20 @@
+{
+  "name": "loopzo",
+  "owner": {
+    "name": "Paarangat",
+    "url": "https://github.com/paarangat"
+  },
+  "metadata": {
+    "description": "Loop-engineered skills for bounded, auditable software delivery."
+  },
+  "plugins": [
+    {
+      "name": "loopzo",
+      "source": "./",
+      "description": "A bounded, multi-model issue-to-PR loop for any GitHub repository.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "homepage": "https://github.com/paarangat/loopzo"
+    }
+  ]
+}

@@ -24,10 +24,10 @@ fresh, headless, single-purpose invocation. State lives in files, never in chat.
 | Scope + plan (S1–S2) | Orchestrator (this session) | session default | Already has context; a fresh planner would re-read the repo — pure waste |
 | Plan review R1 (S3) | `codex exec` `gpt-5.6-sol` | `medium` | Highest-leverage external call; don't cheap out. Drop to `terra`+`high` if cost bites |
 | Plan review R2 verify-only (S3') | `codex exec` `gpt-5.6-terra` | `low` | Checklist work: "were accepted findings addressed?" |
-| Judge (S4, S8b) | `claude -p $BARE` `claude-sonnet-5` | `low` | Tiny context (scope + items), batched in ONE call. Swap to `claude-haiku-4-5-20251001` for high volume |
+| Judge (S4, S8b) | `claude -p $BARE` `claude-fable-5` | `low` | Tiny context (scope + items), batched in ONE call. Swap to `claude-haiku-4-5-20251001` for high volume |
 | Implementation (S6) | `codex exec` `gpt-5.6-sol` | `medium` | Use `gpt-5.6-terra` when final plan has ≤3 steps and no migrations/schema changes |
 | Fix round (S8) | `codex exec resume --last` | inherits | Keeps implementer context; no re-read |
-| Code audit (S7) | `claude -p $BARE` `claude-sonnet-5` | `medium` | Mostly mechanical diff-vs-manifest + criterion check |
+| Code audit (S7) | `claude -p $BARE` `claude-opus-4-8` | `medium` | Mostly mechanical diff-vs-manifest + criterion check |
 | Ponytail pass (S7.5) | orchestrator via `/ponytail-review` | session default | Diff is already in context from S7; no extra call |
 | Escalation arbiter (rare) | `claude -p $BARE` `claude-opus-4-8` | `high` | Only on deadlock or second audit failure |
 
@@ -144,7 +144,7 @@ The judge sees ONLY the scope contract and the findings JSON. No plan rationale,
 no history — that hygiene is what makes it objective.
 
 ```bash
-claude -p $BARE --model claude-sonnet-5 --effort low --allowed-tools "" \
+claude -p $BARE --model claude-fable-5 --effort low --allowed-tools "" \
   --json-schema "$(cat $RUN/schemas/rulings.json)" --output-format json <<EOF \
   | jq -r '.result' > $RUN/04-rulings.json
 You are a scope judge. Do not use tools. For EACH finding, apply exactly this test:
@@ -187,7 +187,7 @@ EOF
 
 ```bash
 git -C <repo> diff > $RUN/diff.patch
-claude -p $BARE --model claude-sonnet-5 --effort medium \
+claude -p $BARE --model claude-opus-4-8 --effort medium \
   --allowed-tools "Read Grep Glob" \
   --json-schema "$(cat $RUN/schemas/audit.json)" --output-format json <<EOF \
   | jq -r '.result' > $RUN/07-audit.json

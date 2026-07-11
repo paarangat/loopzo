@@ -42,7 +42,7 @@ Install and authenticate the required CLIs before starting a run:
 - `jq`
 
 The default routing assumes access to `gpt-5.6-sol` and `gpt-5.6-terra` through Codex,
-and `claude-sonnet-5`, `claude-opus-4-8`, and `claude-haiku-4-5-20251001` through Claude
+and `claude-fable-5`, `claude-opus-4-8`, and `claude-haiku-4-5-20251001` through Claude
 Code. Model names change over time; replace them in `skills/issue-loop/SKILL.md` with
 models available to your account, using the lower-cost fallbacks documented in the table.
 
@@ -56,9 +56,9 @@ is not installed, `issue-loop` applies the same checks itself.
 | Scope and plan | Current Claude Code session | Session default |
 | Plan review | Codex `gpt-5.6-sol` | Medium |
 | Verify-only review | Codex `gpt-5.6-terra` | Low |
-| Scope judge | Claude `claude-sonnet-5` | Low |
+| Scope judge | Claude `claude-fable-5` | Low |
 | Implementation | Codex `gpt-5.6-sol` | Medium |
-| Fresh code audit | Claude `claude-sonnet-5` | Medium |
+| Fresh code audit | Claude `claude-opus-4-8` | Medium |
 | Rare escalation | Claude `claude-opus-4-8` | High |
 
 The loop is bounded to two plan-review rounds, one implementation-fix round, and one

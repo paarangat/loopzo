@@ -70,7 +70,15 @@ the disagreement in ≤5 lines, wait for the human. Never iterate on non-blockin
 
 1. Resolve the issue: `gh issue view <n> --json number,title,body,url,comments` (add
    `--repo` if given a URL). Read body AND all comments — scope often shifts in-thread.
-2. `mkdir -p "$RUN" && echo '.claude-runs/' >> <repo>/.git/info/exclude`
+2. Create `$RUN`, then idempotently add `.claude-runs/` to the repository's exclude file.
+   Resolve the path through Git because `<repo>/.git` is a file inside linked worktrees:
+
+   ```bash
+   mkdir -p "$RUN"
+   EXCLUDE=$(git -C <repo> rev-parse --git-path info/exclude)
+   mkdir -p "$(dirname "$EXCLUDE")"
+   grep -qxF '.claude-runs/' "$EXCLUDE" 2>/dev/null || printf '%s\n' '.claude-runs/' >> "$EXCLUDE"
+   ```
 3. Resolve and copy the bundled schemas into the run directory once:
 
 ```bash
@@ -238,8 +246,15 @@ Ponytail findings ride the S8 fix round — they never get a round of their own.
 ## S9 — HUMAN GATE 2 → PR
 
 1. **GATE 2** (unless `--auto`): show audit verdict + diff stat. STOP until approved.
-2. Commit (repo conventions), push, `gh pr create` — body: objective, AC checklist with
-   evidence, "Closes #<n>". Scope-only; plain prose.
+2. Commit (repo conventions), push, and write a scope-only plain-prose PR body to
+   `$RUN/09-pr-body.md`: objective, AC checklist with evidence, and "Closes #<n>".
+   Create the PR and persist success for callers:
+
+   ```bash
+   PR_URL=$(gh pr create --title "<scope-only title>" --body-file "$RUN/09-pr-body.md") || exit 1
+   test -n "$PR_URL" || exit 1
+   printf '%s\n' "$PR_URL" > "$RUN/09-pr-url.txt"
+   ```
 3. Post each `comments.md` idea as a PR comment (`gh pr comment`) prefixed
    `Out of scope for this PR:`. Never fold them into the diff.
 4. Final report: PR URL, rounds used, rulings summary, anything escalated.

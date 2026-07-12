@@ -1,6 +1,6 @@
 {
   "name": "loopzo",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A bounded, multi-model issue-to-PR loop for any GitHub repository.",
   "author": {
     "name": "Paarangat",
@@ -16,6 +16,8 @@
     "claude",
     "orchestration",
     "pipeline",
+    "queue",
+    "triage",
     "github",
     "pr"
   ]

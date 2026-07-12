@@ -1,11 +1,13 @@
 # loopzo
 
 `loopzo` is a Claude Code plugin for turning GitHub issues into tightly scoped pull
-requests. It ships two skills:
+requests. It ships three skills:
 
 - **`issue-loop`** — the pipeline. One issue in, one scoped PR out. Keeps planning,
   implementation, scope judgment, and auditing in separate model sessions, persists state
   in files, caps review rounds, and pauses at two human gates.
+- **`enqueue`** — the triage gate. Validates one issue for unattended work, assigns an
+  optional priority, and tags it `loopzo-ready`.
 - **`queue`** — the unattended drainer. Pulls the next labeled issue and runs `issue-loop`
   on it with the gates skipped. Designed to be the body of Claude Code's `/loop` command,
   so one `/loop /loopzo:queue` works through an entire backlog.
@@ -93,26 +95,31 @@ flowchart TD
 Round caps (2 reviews, 1 fix, 1 arbiter) bound every cycle; hitting a cap stops the run
 and hands back to the human rather than looping.
 
-## Draining a backlog: `/loopzo:queue`
+## Queueing and draining a backlog
 
 `issue-loop` runs one issue and stops twice for a human. `queue` is for when you have a
 pile of issues and nobody watching: each invocation dequeues ONE ready issue and runs
 `/loopzo:issue-loop <n> --auto` on it — gates skipped, because a loop tick has no human
 present. Repetition comes from wrapping it in `/loop`, not from the skill itself.
 
-The queue is two GitHub labels, so it needs no state files and survives across machines:
+The queue is GitHub labels, so it needs no state files and survives across machines:
 
 | Label | Meaning |
 |---|---|
 | `loopzo-ready` | Enqueued: eligible to be worked |
-| `loopzo-done` | Claimed: never picked up again |
+| `loopzo-running` | Claimed by the queue |
+| `loopzo-pr-open` | Pipeline succeeded and opened a PR |
+| `loopzo-blocked` | Pipeline stopped and needs a human |
+| `loopzo-priority-high` | Run before normal-priority issues |
+| `loopzo-priority-low` | Run after normal-priority issues |
 
-One-time setup per repo, then enqueue issues:
+Use `enqueue` to validate and tag one issue. The command creates missing queue labels
+idempotently:
 
 ```text
-gh label create loopzo-ready --color 0E8A16 --description "queued for /loopzo:queue"
-gh label create loopzo-done  --color 5319E7 --description "claimed by /loopzo:queue"
-gh issue edit <n> --add-label loopzo-ready    # repeat per issue you want worked
+/loopzo:enqueue 42
+/loopzo:enqueue 43 --priority high
+/loopzo:enqueue 44 --priority low
 ```
 
 Run it:
@@ -123,16 +130,33 @@ Run it:
 /loop 30m /loopzo:queue  # standing drainer: check for new ready issues every 30 minutes
 ```
 
+The lifecycle is:
+
+```text
+loopzo-ready → loopzo-running → loopzo-pr-open
+                         └────→ loopzo-blocked
+```
+
 Behavior to know before looping it:
 
-- **Lowest issue number first**, skipping anything already labeled `loopzo-done`.
-- **Claim-before-work:** the `loopzo-done` label is added *before* the pipeline runs, so a
-  crash mid-run can leave a stuck issue (remove the label by hand to requeue) but can
-  never produce a duplicate PR. That is the cheaper direction to fail in.
+- **Priority first:** high, then normal, then low; ties use creation time and issue number.
+- **Claim-before-work:** `ready` is replaced by `running` before the pipeline starts. A
+  crash may leave a stale running issue, but it cannot be selected again automatically.
+- **Explicit recovery:** resolve the blocker, then run
+  `/loopzo:enqueue <n> --requeue`. Nothing retries blocked or stale work by itself.
+- **One consumer per repository:** labels prevent ordinary re-picks but are not a
+  distributed lock for several simultaneous queue runners.
+- **One isolated worktree per issue:** queue runs each issue from the latest remote default
+  branch under `.claude-runs/queue-worktrees/`, so successive PRs never stack. Successful
+  worktrees are removed; blocked worktrees remain for inspection and resume.
 - **Unattended means unattended:** every drained issue ends in a commit, push, and open
   PR with no approval step. If you want the two human gates, run
   `/loopzo:issue-loop <n>` directly instead — gates and looping are mutually exclusive.
-- **Self-terminating:** an empty queue ends the `/loop` rather than polling forever.
+- **Drain or watch:** an empty queue ends the self-paced `/loop /loopzo:queue`; a fixed
+  interval such as `/loop 30m /loopzo:queue` keeps checking until you stop the schedule.
+
+Older releases used `loopzo-done` to mean "claimed." Queue skips that legacy label. Review
+the issue and use `enqueue --requeue` to migrate it deliberately; this avoids duplicate PRs.
 
 ## Model routing
 
